@@ -1,0 +1,15 @@
+{
+  "name": "dronezone",
+  "version": "0.1.0",
+  "description": "Jogo de drones desenvolvido com Electron",
+  "main": "src/main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "check": "node --check src/main.js && node --check src/preload.js && node --check src/renderer.js"
+  },
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "electron": "^44.7.0"
+  }
+}
