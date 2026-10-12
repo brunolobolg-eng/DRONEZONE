@@ -65,7 +65,7 @@ O repositório tem o workflow `.github/workflows/windows-installer.yml`, que rod
 
 1. Envie o código para o GitHub (o branch que você quer gerar).
 2. Abra a aba **Actions** > **Instalador Windows** > **Run workflow** e escolha o branch.
-3. Quando terminar (cerca de 5 a 10 minutos), abra a execução e baixe o artefato **kyiv-fpv-instalador-windows**. Ele contém `Kyiv FPV Setup 0.1.0.exe`.
+3. Quando terminar (cerca de 5 a 10 minutos), abra a execução e baixe o artefato **kyiv-fpv-instalador-windows**. Ele contém `Kyiv FPV Setup 0.1.0.exe` e `instalar.bat`. Extraia o `.zip` e execute o `instalar.bat`: ele abre o instalador. Os dois arquivos precisam estar na mesma pasta.
 
 Para gerar um instalador de uma versão marcada, crie uma tag (`git tag v0.1.0 && git push origin v0.1.0`). O workflow também roda nas tags `v*`.
 
