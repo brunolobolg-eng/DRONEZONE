@@ -38,7 +38,12 @@ jobs:
           npm run build:electron
 
       - name: Gerar o instalador NSIS
-        run: npx electron-builder --win nsis --x64 --publish never
+        run: |
+          node -v
+          node node_modules/electron-builder/cli.js --version
+          $env:DEBUG = 'electron-builder*'
+          node node_modules/electron-builder/cli.js --win nsis --x64 --publish never --config electron-builder.js
+          "electron-builder exit code: $LASTEXITCODE"
         env:
           # Sem certificado de assinatura: o instalador funciona, mas o Windows mostra aviso de editor desconhecido.
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
