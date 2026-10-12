@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Kyiv FPV: simulador de voo FPV com física própria, em navegador e Electron (protótipo)." />
+    <title>Kyiv FPV (protótipo)</title>
+  </head>
+  <body>
+    <canvas id="game" aria-label="Visão em primeira pessoa do drone"></canvas>
+    <div id="hud"></div>
+    <div id="telemetry" hidden></div>
+    <div id="menu-root" class="overlay" hidden></div>
+    <div id="fatal" class="overlay" role="alert" hidden></div>
+    <script type="module" src="/src/app/main.ts"></script>
+  </body>
+</html>

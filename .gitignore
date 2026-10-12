@@ -1,6 +1,9 @@
 node_modules/
 dist/
+dist-electron/
+release/
 out/
 npm-debug.log*
 .DS_Store
 Thumbs.db
+*.tmp

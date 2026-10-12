@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "currency": "créditos fictícios",
+  "parts": [
+    {
+      "id": "frame-scrap",
+      "slot": "frame",
+      "name": "Quadro improvisado de PVC",
+      "price": 0,
+      "effects": {}
+    },
+    {
+      "id": "frame-glass",
+      "slot": "frame",
+      "name": "Quadro de fibra de vidro",
+      "price": 420,
+      "effects": { "massDelta": -0.04, "integrityMax": 40, "impactTolerance": 0.8 }
+    },
+    {
+      "id": "frame-carbon",
+      "slot": "frame",
+      "name": "Quadro de carbono remendado",
+      "price": 980,
+      "effects": { "massDelta": -0.07, "integrityMax": 80, "impactTolerance": 1.6 }
+    },
+    {
+      "id": "motors-stock",
+      "slot": "motors",
+      "name": "Motores genéricos",
+      "price": 0,
+      "effects": {}
+    },
+    {
+      "id": "motors-2207",
+      "slot": "motors",
+      "name": "Motores 2207 de segunda mão",
+      "price": 350,
+      "effects": { "maxThrustFactor": 1.15, "responseFactor": 0.85, "efficiencyFactor": 0.97, "massDelta": 0.03 }
+    },
+    {
+      "id": "motors-2306",
+      "slot": "motors",
+      "name": "Motores 2306 com ESC novo",
+      "price": 780,
+      "effects": { "maxThrustFactor": 1.3, "responseFactor": 0.7, "efficiencyFactor": 1.02, "massDelta": 0.05 }
+    },
+    {
+      "id": "battery-1300",
+      "slot": "battery",
+      "name": "Bateria 1300 mAh",
+      "price": 0,
+      "effects": {}
+    },
+    {
+      "id": "battery-1800",
+      "slot": "battery",
+      "name": "Bateria 1800 mAh",
+      "price": 260,
+      "effects": { "capacityFactor": 1.4, "massDelta": 0.08 }
+    },
+    {
+      "id": "camera-analog",
+      "slot": "camera",
+      "name": "Câmera analógica de 600 linhas",
+      "price": 0,
+      "effects": { "cameraQuality": 1 }
+    },
+    {
+      "id": "camera-hd",
+      "slot": "camera",
+      "name": "Câmera FPV HD",
+      "price": 510,
+      "effects": { "cameraQuality": 2, "massDelta": 0.01 }
+    },
+    {
+      "id": "stabilizer-none",
+      "slot": "stabilizer",
+      "name": "Sem amortecedor",
+      "price": 0,
+      "effects": {}
+    },
+    {
+      "id": "stabilizer-damped",
+      "slot": "stabilizer",
+      "name": "Amortecedor de vibração",
+      "price": 190,
+      "effects": { "angularDampingDelta": 0.0012, "massDelta": 0.01 }
+    },
+    {
+      "id": "mission-none",
+      "slot": "mission",
+      "name": "Sem equipamento de missão",
+      "price": 0,
+      "effects": {}
+    },
+    {
+      "id": "mission-inspection",
+      "slot": "mission",
+      "name": "Módulo de inspeção (fictício)",
+      "price": 300,
+      "effects": { "missionRewardFactor": 1.25, "massDelta": 0.04 }
+    }
+  ]
+}
