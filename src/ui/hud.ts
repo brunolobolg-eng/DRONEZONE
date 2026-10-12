@@ -28,6 +28,7 @@ const MISSION_LABELS: Record<string, string> = {
 export class Hud {
   private readonly values = new Map<string, HTMLElement>();
   private readonly warningsEl: HTMLElement;
+  private readonly hintEl: HTMLElement = el('div', { class: 'hint' });
   private readonly warnings: { text: string; expires: number }[] = [];
   private lastWarningKey = '';
 
@@ -49,11 +50,16 @@ export class Hud {
         field('equipment', 'Equipamento'),
       ]),
       el('div', { class: 'panel hud-mission' }, [field('mission', 'Missão'), field('timer', 'Tempo')]),
-      el('div', { class: 'hint' }, ['Espaço armar · Esc pausar · Backspace reiniciar · Tab telemetria']),
+      this.hintEl,
       el('div', { class: 'gamepad-status' }, [field('gamepad', 'Controle')]),
     );
     this.warningsEl = el('div', { class: 'warnings', role: 'status', 'aria-live': 'polite' });
     root.append(this.warningsEl);
+  }
+
+  /** Texto da dica de teclas, montado a partir do mapeamento atual. */
+  setHint(text: string): void {
+    if (this.hintEl.textContent !== text) this.hintEl.textContent = text;
   }
 
   /** Acrescenta um aviso curto que some depois de alguns segundos. */

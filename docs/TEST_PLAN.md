@@ -8,7 +8,7 @@ npm run typecheck     # TypeScript: web e Electron
 npm run check         # typecheck + testes
 ```
 
-## Automatizados (Vitest, 175 testes)
+## Automatizados (Vitest, 200 testes)
 
 Ambiente `node`. Não há DOM nem WebGL nos testes: a lógica de jogo é testada sem renderização.
 
@@ -19,12 +19,14 @@ Ambiente `node`. Não há DOM nem WebGL nos testes: a lógica de jogo é testada
 | `tests/unit/physics.test.ts` | gravidade, arrasto, empuxo de hover, resposta do motor, limites dos motores, roll/pitch/yaw com sinais, taxa seguindo a referência, passo fixo em 100/200/250 Hz, independência do tamanho do quadro, pausa longa, reinicialização de entrada, interpolação, estabilidade (60 s com entradas aleatórias), impactos, colisões, colisor desativado, bateria |
 | `tests/unit/roll-sign-regression.test.ts` | rolagem com acelerador alto e saturado, mesmo sinal da taxa |
 | `tests/unit/terrain-telemetry.test.ts` | terreno (faixa plana, determinismo, crateras, rebaixo, anel de borda, limite de profundidade, acúmulo, registros limitados, reset), telemetria (ângulos, km/h, frações de motor, rolagem além de 90°) |
+| `tests/unit/keyboard.test.ts` | teclas padrão e alternativas (WASD e setas, R/F, Shift/Ctrl, X), remapeamento e detecção de conflito, rótulos e dica da tela, corte do acelerador, rampa de suavização (subida, descida, 0 ms, sem ultrapassar o alvo), validação das teclas nas configurações |
 | `tests/unit/failsafe.test.ts` | failsafe: teclado ocioso não dispara, desconexão do gamepad dispara em 1,5 s, teclado e reconexão cancelam |
 | `tests/unit/gameplay-input.test.ts` | gamepad (zona morta, inversão, acelerador absoluto e com mola), resolução combinando gamepad e teclado, remapeamento, sensibilidade, desconexão e reconexão, bordas de botão, teclado, sanitização de configurações |
 | `tests/unit/gameplay-progression.test.ts` | catálogo (validação), melhorias alterando a física (motores, bateria, quadro), comparação de fichas, compra e custos, reparo, salvamento (round trip, corrompido, versão futura, peças inválidas, saldo negativo) |
 | `tests/unit/gameplay-destruction.test.ts` | estados de dano e monotonicidade, estrutura (distribuição, transmissão ao núcleo, piora em cadeia, cobertura), pool de fragmentos (limite, expiração, colisão com solo, determinismo), regras de impacto |
 | `tests/unit/environment-mission.test.ts` | bairro (determinismo, casas fora da via, colisores, ponto de partida, ordem dos pontos), missão (ordem, conclusão, falha, reset) |
 | `tests/unit/electron-contract.test.ts` | canais do preload iguais aos de `ipc.ts`; preload sem `ipcRenderer` genérico nem `fs`; validação de chaves no processo principal |
+| `tests/integration/keyboard-flight.test.ts` | voo só com teclado pelo mesmo caminho do navegador: armar com Espaço, subir com R, cortar com X, rolar com D/A, seta direita como D, Backspace reinicia, teclado ocioso não desarma |
 | `tests/integration/game-session.test.ts` | inicialização do jogo, ciclo de voo (armar, subir, reiniciar), impacto no solo gera cratera, colisão com casa gera dano, casa destruída desativa o colisor e o drone a atravessa, missão completa paga recompensa, crash falha a missão, compra, equipamento, reparo, persistência |
 
 ## Verificações manuais executadas

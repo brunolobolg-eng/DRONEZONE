@@ -19,33 +19,6 @@
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.electron.json",
     "check": "npm run typecheck && npm test"
   },
-  "build": {
-    "appId": "com.example.kyivfpv",
-    "productName": "Kyiv FPV",
-    "directories": {
-      "output": "release"
-    },
-    "files": [
-      "dist/**/*",
-      "dist-electron/**/*",
-      "package.json"
-    ],
-    "asar": true,
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        }
-      ]
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true
-    }
-  },
   "dependencies": {
     "three": "^0.186.1"
   },
@@ -57,5 +30,6 @@
     "typescript": "^5.9.3",
     "vite": "^8.3.4",
     "vitest": "^5.0.4"
-  }
+  },
+  "author": "Kyiv FPV (protótipo)"
 }

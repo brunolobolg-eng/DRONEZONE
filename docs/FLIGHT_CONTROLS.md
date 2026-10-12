@@ -58,16 +58,17 @@ Os índices de eixo e os botões podem ser alterados. Os valores padrão seguem 
 
 Se os dois estão ativos, cada controle usa a fonte com **maior deflexão**. Assim, um deles nunca anula o outro.
 
-| Ação | Gamepad (padrão) | Teclado |
-|---|---|---|
-| Rolagem | eixo direito, horizontal | A / D |
-| Arfagem | eixo direito, vertical | W (nariz para baixo) / S (nariz para cima) |
-| Guinada | eixo esquerdo, horizontal | Q (esquerda) / E (direita) |
-| Acelerador | eixo esquerdo, vertical | Shift (sobe) / Ctrl (desce) |
-| Armar / desarmar | botão A (0) | Espaço |
-| Reiniciar voo | botão Y (3) | Backspace |
-| Pausar | Start (9) | Esc |
-| Telemetria | Back (8) | Tab |
+| Ação | Gamepad (padrão) | Teclado (padrão) | Alternativa de teclado |
+|---|---|---|---|
+| Rolagem | eixo direito, horizontal | A (esquerda) / D (direita) | ← / → |
+| Arfagem | eixo direito, vertical | W (nariz para baixo) / S (nariz para cima) | ↑ (nariz para baixo) / ↓ (nariz para cima) |
+| Guinada | eixo esquerdo, horizontal | Q (esquerda) / E (direita) | — |
+| Acelerador | eixo esquerdo, vertical | R (sobe) / F (desce) | Shift esq. (sobe) / Ctrl esq. (desce) |
+| Cortar acelerador | — | X (zera a potência enquanto segurada) | — |
+| Armar / desarmar | botão A (0) | Espaço | — |
+| Reiniciar voo | botão Y (3) | Backspace | — |
+| Pausar | Start (9) | Esc | — |
+| Telemetria | Back (8) | Tab | — |
 
 Os botões são registrados por borda de subida (`ButtonEdges`): um pressionamento gera um evento, mesmo que o botão continue apertado. O teclado usa "trava" de botões: um toque curto entre dois quadros não se perde.
 
@@ -98,3 +99,39 @@ O painel de depuração (Tab ou configuração) mostra o que o núcleo produz: t
 ### Rolagem
 
 Calculada com `atan2`, no intervalo de -180° a 180°. Com `asin`, o valor dobraria acima de 90° (no modo Acro o drone pode girar além disso, e o valor ficaria errado). Corrigido e coberto por teste.
+
+## Teclado
+
+O teclado é a entrada principal no computador. Foi ajustado para ser usado com uma mão no cluster WASD, com a outra livre para o mouse ou para o acelerador.
+
+### Teclas padrão
+
+- **Rolar**: A e D.
+- **Nariz**: W baixa o nariz (anda para a frente), S levanta.
+- **Guinar**: Q e E.
+- **Acelerador**: R sobe e F desce. A posição é mantida ao soltar. Shift esquerdo e Ctrl esquerdo são alternativas.
+- **X** corta o acelerador a zero enquanto é segurado: a saída rápida quando algo sai do controle.
+
+### Suavização
+
+Teclas são ligadas ou desligadas, então sem suavização um toque daria deflexão total. A rampa leva o comando até o alvo em **120 ms** ao afastar-se do centro e em cerca de **84 ms** ao voltar (70% da subida). Ajuste de 0 a 400 ms em Configurações > Teclado. Com 0, a resposta é instantânea.
+
+### Remapeamento
+
+1. Abra o menu com Esc e vá em **Configurações**.
+2. Em **Teclado**, clique em **Alterar** na ação desejada.
+3. Pressione a nova tecla. Esc cancela.
+
+A tecla nova vira a principal, mostrada na tela. A alternativa (a segunda tecla da ação) é mantida. A dica na parte de baixo da tela é atualizada na hora.
+
+Regras:
+- Uma tecla não pode servir a duas ações. Se for escolhida uma tecla já usada, o jogo mostra qual ação a está usando e não troca.
+- Cada ação aceita até duas teclas no arquivo de configuração.
+- Se o arquivo salvo tiver uma tecla repetida, o mapeamento inteiro volta ao padrão, com aviso no console.
+- **Restaurar teclas padrão** volta todas as ações ao padrão.
+
+### Segurança do teclado
+
+- O teclado nunca dispara o failsafe: sem tecla pressionada, o comando é neutro e o drone continua armado.
+- Teclas do jogo não acionam atalhos do navegador. Por exemplo, Ctrl+F com F como acelerador não abre a busca da página.
+- Enquanto uma tecla está sendo remapeada, nenhum comando de voo é processado. Assim, apertar Espaço para escolher a tecla não arma o drone.

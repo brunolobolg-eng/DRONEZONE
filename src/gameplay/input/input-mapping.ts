@@ -16,6 +16,8 @@ export interface KeyboardReading {
   readonly pitch: number;
   readonly yaw: number;
   readonly throttleDirection: number;
+  /** Tecla de corte do acelerador: zera a potência enquanto estiver pressionada. */
+  readonly cutThrottle: boolean;
   readonly buttons: Readonly<Record<ButtonName, boolean>>;
   /** Verdadeiro se alguma tecla mapeada está pressionada agora. */
   readonly active: boolean;
@@ -126,6 +128,8 @@ export const resolveControls = (args: ResolveArgs): ControlFrame => {
   } else {
     throttle = gamepad ? absoluteThrottle(padRaw, settings.axes.throttle) : previousThrottle;
   }
+
+  if (keyboard.cutThrottle) throttle = 0;
 
   const buttons = { ...keyboard.buttons };
   if (gamepad) {

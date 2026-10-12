@@ -1,0 +1,47 @@
+name: Instalador Windows
+
+# Gera o instalador .exe num runner Windows real.
+# Execução: aba "Actions" do repositório > "Instalador Windows" > "Run workflow".
+# O instalador fica disponível como artefato da execução (download na própria página).
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  windows-installer:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Verificar tipos e testes
+        run: npm run check
+
+      - name: Gerar o instalador
+        run: npm run dist:win
+        env:
+          # Sem certificado de assinatura: o instalador funciona, mas o Windows mostra aviso de editor desconhecido.
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+      - name: Publicar o instalador como artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyiv-fpv-instalador-windows
+          path: release/*.exe
+          if-no-files-found: error
+          retention-days: 14

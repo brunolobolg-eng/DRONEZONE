@@ -1,7 +1,15 @@
 import { type ButtonName, type ControlName, type ControlsSettings, DEFAULT_BUTTONS, LAYOUT_MODE2, LAYOUT_MODE1, type AxisBinding } from './input/input-mapping';
+import {
+  DEFAULT_KEY_BINDINGS,
+  KEY_ACTIONS,
+  MAX_KEYS_PER_ACTION,
+  type KeyAction,
+  type KeyBindings,
+  findBindingConflict,
+} from './input/keyboard-axes';
 import { clamp } from '../core/math/scalar';
 
-export const SETTINGS_SCHEMA_VERSION = 1;
+export const SETTINGS_SCHEMA_VERSION = 2;
 
 export type QualityPreset = 'low' | 'medium' | 'high';
 export type LayoutProfile = 'mode2' | 'mode1';
@@ -11,6 +19,9 @@ export interface GameSettings {
   readonly layout: LayoutProfile;
   readonly axes: Readonly<Record<ControlName, AxisBinding>>;
   readonly buttons: Readonly<Record<ButtonName, number>>;
+  readonly keys: KeyBindings;
+  /** Tempo da rampa de suavização do teclado (ms). 0 desliga. */
+  readonly keyboardRampMs: number;
   readonly deadzone: number;
   readonly expo: number;
   readonly sensitivity: number;
@@ -29,6 +40,8 @@ export const DEFAULT_SETTINGS: GameSettings = {
   layout: 'mode2',
   axes: LAYOUT_MODE2,
   buttons: DEFAULT_BUTTONS,
+  keys: DEFAULT_KEY_BINDINGS,
+  keyboardRampMs: 120,
   deadzone: 0.06,
   expo: 0.3,
   sensitivity: 1,
@@ -49,6 +62,7 @@ export interface SettingsLoadResult {
 const QUALITIES: readonly QualityPreset[] = ['low', 'medium', 'high'];
 const CONTROL_NAMES: readonly ControlName[] = ['roll', 'pitch', 'yaw', 'throttle'];
 const BUTTON_NAMES: readonly ButtonName[] = ['arm', 'reset', 'pause', 'telemetry'];
+const CODE_PATTERN = /^[A-Za-z0-9]{1,20}$/;
 
 /**
  * Lê configurações de uma fonte não confiável (arquivo, armazenamento do navegador).
@@ -106,11 +120,15 @@ export const sanitizeSettings = (raw: unknown): SettingsLoadResult => {
     }
   }
 
+  const keys = sanitizeKeys(raw.keys, warnings);
+
   const settings: GameSettings = {
     schemaVersion: SETTINGS_SCHEMA_VERSION,
     layout,
     axes,
     buttons,
+    keys,
+    keyboardRampMs: num('keyboardRampMs', d.keyboardRampMs, 0, 400),
     deadzone: num('deadzone', d.deadzone, 0, 0.3),
     expo: num('expo', d.expo, 0, 1),
     sensitivity: num('sensitivity', d.sensitivity, 0.25, 2),
@@ -123,6 +141,37 @@ export const sanitizeSettings = (raw: unknown): SettingsLoadResult => {
     telemetryVisible: bool('telemetryVisible', d.telemetryVisible),
   };
   return { settings, warnings };
+};
+
+/**
+ * Teclas do jogador. Cada ação usa de 1 a 2 teclas. Ações ausentes ou inválidas voltam ao padrão.
+ * Se a mesma tecla aparecer em duas ações, o mapeamento inteiro volta ao padrão, para não deixar o jogo ambíguo.
+ */
+const sanitizeKeys = (raw: unknown, warnings: string[]): KeyBindings => {
+  if (raw === undefined) return DEFAULT_KEY_BINDINGS;
+  if (!isRecord(raw)) {
+    warnings.push('teclas inválidas: usando padrão');
+    return DEFAULT_KEY_BINDINGS;
+  }
+  const result = { ...DEFAULT_KEY_BINDINGS } as Record<KeyAction, readonly string[]>;
+  for (const action of KEY_ACTIONS) {
+    const entry = raw[action];
+    if (entry === undefined) continue;
+    const valid =
+      Array.isArray(entry) &&
+      entry.length >= 1 &&
+      entry.length <= MAX_KEYS_PER_ACTION &&
+      entry.every((code) => typeof code === 'string' && CODE_PATTERN.test(code)) &&
+      new Set(entry).size === entry.length;
+    if (valid) result[action] = entry as string[];
+    else warnings.push(`tecla de "${action}" inválida`);
+  }
+  const conflict = findBindingConflict(result);
+  if (conflict) {
+    warnings.push(`tecla ${conflict.code} usada em mais de uma ação: teclas voltaram ao padrão`);
+    return DEFAULT_KEY_BINDINGS;
+  }
+  return result;
 };
 
 /** Converte as configurações de controle para o formato usado pelo mapeamento de entradas. */

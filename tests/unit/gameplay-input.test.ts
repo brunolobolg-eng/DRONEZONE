@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_SETTINGS, sanitizeSettings, toControlsSettings } from '../../src/gameplay/settings';
-import { keyboardAxes, KEY_BINDINGS } from '../../src/gameplay/input/keyboard-axes';
+import { keyboardAxes, DEFAULT_KEY_BINDINGS } from '../../src/gameplay/input/keyboard-axes';
 import {
   ButtonEdges,
   absoluteThrottle,
@@ -17,6 +17,7 @@ const NO_KEYS: KeyboardReading = {
   pitch: 0,
   yaw: 0,
   throttleDirection: 0,
+  cutThrottle: false,
   buttons: { arm: false, reset: false, pause: false, telemetry: false },
   active: false,
 };
@@ -155,7 +156,7 @@ describe('bordas de botão', () => {
 
 describe('teclado', () => {
   it('converte teclas em eixos de -1 a 1', () => {
-    const axes = keyboardAxes(new Set([KEY_BINDINGS.rollRight, KEY_BINDINGS.pitchDown, KEY_BINDINGS.throttleUp]));
+    const axes = keyboardAxes(new Set([DEFAULT_KEY_BINDINGS.rollRight[0], DEFAULT_KEY_BINDINGS.pitchDown[0], DEFAULT_KEY_BINDINGS.throttleUp[0]]));
     expect(axes.roll).toBe(1);
     expect(axes.pitch).toBe(-1);
     expect(axes.throttleDirection).toBe(1);
@@ -163,7 +164,7 @@ describe('teclado', () => {
   });
 
   it('teclas opostas se anulam', () => {
-    const axes = keyboardAxes(new Set([KEY_BINDINGS.rollLeft, KEY_BINDINGS.rollRight]));
+    const axes = keyboardAxes(new Set([DEFAULT_KEY_BINDINGS.rollLeft[0], DEFAULT_KEY_BINDINGS.rollRight[0]]));
     expect(axes.roll).toBe(0);
   });
 

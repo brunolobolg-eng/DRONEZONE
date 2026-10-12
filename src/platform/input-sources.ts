@@ -1,10 +1,6 @@
 import { type GamepadReading, type KeyboardReading } from '../gameplay/input/input-mapping';
-import { BUTTON_KEYS, KEY_BINDINGS, keyboardAxes } from '../gameplay/input/keyboard-axes';
+import { BUTTON_KEY_ACTIONS, type KeyBindings, boundCodes, keyboardAxes, DEFAULT_KEY_BINDINGS } from '../gameplay/input/keyboard-axes';
 import { logger } from './logger';
-
-/** Teclas do jogo: o navegador não deve rolar a página nem trocar o foco com elas. */
-const CAPTURED_KEYS = new Set<string>([...Object.values(KEY_BINDINGS), 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
-const BUTTON_CODES = new Set<string>(Object.values(BUTTON_KEYS));
 
 /**
  * Lê a Gamepad API. Qualquer controle conectado serve; o primeiro vira o ativo.
@@ -63,17 +59,22 @@ export class GamepadSource {
 }
 
 /**
- * Teclado com teclas pressionadas. Ao perder o foco, limpa tudo para não travar comandos.
- * Botões são "travados" (latch): um toque curto entre dois quadros não se perde.
+ * Teclado com as teclas pressionadas, segundo o mapeamento atual.
+ * Ao perder o foco, limpa tudo para não travar comandos.
+ * Botões (armar, reiniciar, pausar, telemetria) são "travados" entre quadros: um toque curto não se perde.
  */
 export class KeyboardSource {
   private readonly pressed = new Set<string>();
   private readonly latched = new Set<string>();
+  private bindings: KeyBindings = DEFAULT_KEY_BINDINGS;
+  private captured = boundCodes(DEFAULT_KEY_BINDINGS);
+  private buttonCodes = new Map<string, string>();
+
   private readonly onDown = (e: KeyboardEvent): void => {
-    if (CAPTURED_KEYS.has(e.code)) e.preventDefault();
+    if (this.captured.has(e.code)) e.preventDefault();
     if (e.repeat) return;
     this.pressed.add(e.code);
-    if (BUTTON_CODES.has(e.code)) this.latched.add(e.code);
+    if (this.buttonCodes.has(e.code)) this.latched.add(e.code);
   };
   private readonly onUp = (e: KeyboardEvent): void => {
     this.pressed.delete(e.code);
@@ -81,9 +82,21 @@ export class KeyboardSource {
   private readonly onBlur = (): void => this.clear();
 
   constructor(private readonly target: Window) {
+    this.setBindings(DEFAULT_KEY_BINDINGS);
     target.addEventListener('keydown', this.onDown);
     target.addEventListener('keyup', this.onUp);
     target.addEventListener('blur', this.onBlur);
+  }
+
+  /** Troca o mapeamento de teclas. Teclas antigas deixam de ser capturadas. */
+  setBindings(bindings: KeyBindings): void {
+    this.bindings = bindings;
+    this.captured = boundCodes(bindings);
+    this.buttonCodes = new Map();
+    for (const action of BUTTON_KEY_ACTIONS) {
+      for (const code of bindings[action]) this.buttonCodes.set(code, action);
+    }
+    this.clear();
   }
 
   clear(): void {
@@ -92,19 +105,26 @@ export class KeyboardSource {
   }
 
   read(): KeyboardReading {
-    const axes = keyboardAxes(this.pressed);
-    const buttons = {
-      arm: axes.buttons.arm || this.latched.has(BUTTON_KEYS.arm),
-      reset: axes.buttons.reset || this.latched.has(BUTTON_KEYS.reset),
-      pause: axes.buttons.pause || this.latched.has(BUTTON_KEYS.pause),
-      telemetry: axes.buttons.telemetry || this.latched.has(BUTTON_KEYS.telemetry),
-    };
+    const axes = keyboardAxes(this.pressed, this.bindings);
+    // Botões travados: pressionados desde a última leitura, mesmo que já tenham sido soltos.
+    const latchedActions = new Set<string>();
+    for (const code of this.latched) {
+      const action = this.buttonCodes.get(code);
+      if (action) latchedActions.add(action);
+    }
     this.latched.clear();
+    const buttons = {
+      arm: axes.buttons.arm || latchedActions.has('arm'),
+      reset: axes.buttons.reset || latchedActions.has('reset'),
+      pause: axes.buttons.pause || latchedActions.has('pause'),
+      telemetry: axes.buttons.telemetry || latchedActions.has('telemetry'),
+    };
     return {
       roll: axes.roll,
       pitch: axes.pitch,
       yaw: axes.yaw,
       throttleDirection: axes.throttleDirection,
+      cutThrottle: axes.cutThrottle,
       buttons,
       active: axes.active,
     };
@@ -115,5 +135,7 @@ export class KeyboardSource {
     this.target.removeEventListener('keyup', this.onUp);
     this.target.removeEventListener('blur', this.onBlur);
     this.pressed.clear();
+    this.latched.clear();
   }
 }
+

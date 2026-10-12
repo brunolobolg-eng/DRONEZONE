@@ -294,3 +294,26 @@ input[type='range'] {
     min-width: 0;
   }
 }
+
+/* Remapeamento de teclas: ação, tecla atual e botão lado a lado. */
+.key-grid {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 6px 12px;
+  align-items: center;
+  margin: 8px 0;
+}
+
+.key-row {
+  display: contents;
+}
+
+kbd {
+  font: 600 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  background: #111a2b;
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 3px 8px;
+  min-width: 64px;
+  text-align: center;
+}

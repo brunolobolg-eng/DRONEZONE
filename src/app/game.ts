@@ -1,6 +1,15 @@
 import { MotorAudio } from '../audio/motor-audio';
 import { GameSession, type SessionEvent } from '../gameplay/game-session';
 import { ButtonEdges, type ControlFrame, resolveControls } from '../gameplay/input/input-mapping';
+import {
+  DEFAULT_KEY_BINDINGS,
+  KEY_ACTION_LABELS,
+  type KeyAction,
+  bindingHint,
+  findBindingConflict,
+  keyLabel,
+} from '../gameplay/input/keyboard-axes';
+import { KeyboardRamp } from '../gameplay/input/keyboard-ramp';
 import { DEFAULT_CATALOG, type PartCatalog } from '../gameplay/progression/catalog';
 import { type Loadout } from '../gameplay/progression/loadout';
 import { type SaveData, serializeSave } from '../gameplay/progression/save-data';
@@ -42,6 +51,9 @@ export class Game {
   private readonly telemetry: TelemetryPanel;
   private readonly menus: Menus;
   private readonly keyboard: KeyboardSource;
+  private readonly keyboardRamp = new KeyboardRamp();
+  /** Ação que está sendo remapeada, ou null. Enquanto há captura, os controles não são processados. */
+  private capture: KeyAction | null = null;
   private readonly gamepad: GamepadSource;
   private readonly audio = new MotorAudio();
   private readonly edges = new ButtonEdges();
@@ -85,6 +97,9 @@ export class Game {
     options.telemetryRoot.hidden = !this.settings.telemetryVisible;
 
     this.keyboard = new KeyboardSource(window);
+    this.keyboard.setBindings(this.settings.keys);
+    this.hud.setHint(bindingHint(this.settings.keys));
+    window.addEventListener('keydown', this.onCaptureKey, true);
     this.gamepad = new GamepadSource(window, (connected) => {
       this.hud.warn(connected ? 'Controle conectado' : 'Controle desconectado', performance.now(), 3);
     });
@@ -100,6 +115,12 @@ export class Game {
         },
         toggleTelemetry: () => this.toggleTelemetry(),
         setSettings: (patch) => this.applySettings(patch),
+        beginKeyCapture: (action) => this.beginKeyCapture(action),
+        resetKeys: () => {
+          this.capture = null;
+          this.applySettings({ keys: DEFAULT_KEY_BINDINGS });
+          this.menus.setCapture(null, 'Teclas padrão restauradas.');
+        },
         buy: (id) => {
           const r = this.session.buy(id);
           this.refreshWorkshop();
@@ -153,11 +174,16 @@ export class Game {
     this.trackFps(now);
 
     // Os controles são lidos sempre, para que Esc (pausa/retomar) e Tab funcionem também em pausa.
-    const controls = this.readControls(dt);
-    const pressed = this.edges.update(controls.buttons);
-    if (pressed.includes('pause')) this.setPaused(!this.paused);
-    if (pressed.includes('telemetry')) this.toggleTelemetry();
-    if (!this.paused) this.simulate(controls, dt);
+    if (this.capture !== null) {
+      // Remapeando uma tecla: nenhum comando do jogo é processado enquanto o jogador escolhe.
+      this.keyboard.clear();
+    } else {
+      const controls = this.readControls(dt);
+      const pressed = this.edges.update(controls.buttons);
+      if (pressed.includes('pause')) this.setPaused(!this.paused);
+      if (pressed.includes('telemetry')) this.toggleTelemetry();
+      if (!this.paused) this.simulate(controls, dt);
+    }
 
     this.renderer.syncWorld();
     const pose = this.session.world.renderPose();
@@ -182,7 +208,7 @@ export class Game {
   private readControls(dt: number): ControlFrame {
     const controls = resolveControls({
       gamepad: this.gamepad.read(),
-      keyboard: this.keyboard.read(),
+      keyboard: this.keyboardRamp.update(this.keyboard.read(), dt, this.settings.keyboardRampMs),
       settings: toControlsSettings(this.settings),
       previousThrottle: this.throttle,
       dt,
@@ -326,8 +352,41 @@ export class Game {
     this.telemetryRoot.hidden = !settings.telemetryVisible;
     this.renderer.setQuality(settings.quality, window.devicePixelRatio);
     this.renderer.setFov(settings.fov);
+    this.keyboard.setBindings(settings.keys);
+    this.hud.setHint(bindingHint(settings.keys));
     void this.persist(SETTINGS_KEY, JSON.stringify(settings));
   }
+
+  private beginKeyCapture(action: KeyAction): void {
+    this.capture = action;
+    this.keyboard.clear();
+    this.menus.setCapture(action);
+  }
+
+  /** Captura a próxima tecla para a ação em remapeamento. Esc cancela; a capture phase impede que a tecla acione o jogo. */
+  private readonly onCaptureKey = (e: KeyboardEvent): void => {
+    if (this.capture === null) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.repeat) return;
+    const action = this.capture;
+    if (e.code === 'Escape') {
+      this.capture = null;
+      this.menus.setCapture(null, 'Remapeamento cancelado.');
+      return;
+    }
+    const current = this.settings.keys[action];
+    const next = { ...this.settings.keys, [action]: [e.code, ...current.slice(1).filter((c) => c !== e.code)] };
+    const conflict = findBindingConflict(next);
+    if (conflict && conflict.actions.some((a) => a !== action)) {
+      const others = conflict.actions.filter((a) => a !== action).map((a) => KEY_ACTION_LABELS[a]).join(', ');
+      this.menus.setCapture(action, `"${keyLabel(e.code)}" já é usada em: ${others}.`);
+      return;
+    }
+    this.capture = null;
+    this.applySettings({ keys: next });
+    this.menus.setCapture(null, `"${keyLabel(e.code)}" agora é ${KEY_ACTION_LABELS[action].toLowerCase()}.`);
+  };
 
   private async persist(key: string, value: string): Promise<void> {
     const ok = await this.storage.write(key, value);
