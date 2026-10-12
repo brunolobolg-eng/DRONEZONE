@@ -32,11 +32,21 @@ jobs:
       - name: Verificar tipos e testes
         run: npm run check
 
-      - name: Gerar o instalador
-        run: npm run dist:win
+      - name: Compilar a versão web e o processo principal do Electron
+        run: |
+          npm run build:web
+          npm run build:electron
+
+      - name: Gerar o instalador NSIS
+        run: npx electron-builder --win nsis --x64 --publish never
         env:
           # Sem certificado de assinatura: o instalador funciona, mas o Windows mostra aviso de editor desconhecido.
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+      - name: Listar os arquivos gerados
+        if: always()
+        run: |
+          Get-ChildItem -Path release, dist -Recurse -Include *.exe, *.7z -ErrorAction SilentlyContinue | ForEach-Object { "{0}  {1:N1} MB" -f $_.FullName, ($_.Length / 1MB) }
 
       - name: Publicar o instalador como artefato
         uses: actions/upload-artifact@v4
